@@ -1,9 +1,10 @@
-import { getTopUsers, getLanguageStats } from '@/lib/github-data';
+import { getTopUsers, getLanguageStats, getTopRepositories } from '@/lib/github-data';
 import { UserRanking } from '@/components/dashboard/user-ranking';
 import { LanguageStats } from '@/components/dashboard/language-stats';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { CountrySelector } from '@/components/dashboard/country-selector';
 import type { Metadata } from 'next';
+import { TopRepositories } from '@/components/dashboard/top-repositories';
 
 export const metadata: Metadata = {
   title: 'GitBoard - Top GitHub Contributors',
@@ -19,6 +20,7 @@ export default async function Home({
   const country = typeof searchParams?.country === 'string' ? searchParams.country : 'global';
   const topUsers = await getTopUsers(100, country);
   const languageStats = await getLanguageStats();
+  const topRepos = await getTopRepositories(10);
 
   return (
     <div className="space-y-8">
@@ -43,13 +45,21 @@ export default async function Home({
             </CardContent>
           </Card>
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-8">
           <Card>
             <CardHeader>
               <CardTitle className="font-headline">Language Popularity</CardTitle>
             </CardHeader>
             <CardContent>
               <LanguageStats stats={languageStats} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline">Top Repositories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TopRepositories repositories={topRepos} />
             </CardContent>
           </Card>
         </div>

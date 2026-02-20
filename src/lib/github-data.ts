@@ -1,5 +1,6 @@
 import { GraphQLClient, gql } from 'graphql-request'
-import type { User, LanguageStat, Activity } from './types'
+import type { User, LanguageStat, Activity, Repository } from './types'
+import { subDays } from 'date-fns';
 
 const GITHUB_API_URL = 'https://api.github.com/graphql'
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
@@ -29,6 +30,67 @@ function mapApiUserToUser(apiUser: any): User {
     .slice(0, 5)
     .reduce((r, [k, v]) => ({ ...r, [k]: v }), {});
 
+  const recentActivity: Activity[] = [];
+  if (apiUser.contributionsCollection) {
+    // Commits
+    apiUser.contributionsCollection.commitContributionsByRepository.forEach((repo: any) => {
+      repo.contributions.nodes.forEach((contrib: any) => {
+        recentActivity.push({
+          id: contrib.commit.oid,
+          type: 'commit',
+          repo: repo.repository.nameWithOwner,
+          date: contrib.occurredAt,
+          details: contrib.commit.messageHeadline,
+        });
+      });
+    });
+
+    // PRs
+    apiUser.contributionsCollection.pullRequestContributions.nodes.forEach((contrib: any) => {
+        recentActivity.push({
+            id: contrib.pullRequest.id,
+            type: contrib.pullRequest.merged ? 'pr_merged' : 'pr_open',
+            repo: contrib.pullRequest.repository.nameWithOwner,
+            date: contrib.pullRequest.merged ? contrib.pullRequest.mergedAt : contrib.pullRequest.createdAt,
+            details: contrib.pullRequest.title,
+        });
+    });
+    
+    // Issues
+    apiUser.contributionsCollection.issueContributions.nodes.forEach((contrib: any) => {
+        recentActivity.push({
+            id: contrib.issue.id,
+            type: 'issue_open',
+            repo: contrib.issue.repository.nameWithOwner,
+            date: contrib.issue.createdAt,
+            details: contrib.issue.title,
+        });
+    });
+
+    // Reviews
+    apiUser.contributionsCollection.pullRequestReviewContributions.nodes.forEach((contrib: any) => {
+        recentActivity.push({
+            id: contrib.pullRequestReview.id,
+            type: 'review',
+            repo: contrib.pullRequestReview.pullRequest.repository.nameWithOwner,
+            date: contrib.pullRequestReview.publishedAt,
+            details: `Reviewed PR: "${contrib.pullRequestReview.pullRequest.title}"`,
+        });
+    });
+
+    // Repos
+    apiUser.contributionsCollection.repositoryContributions.nodes.forEach((contrib: any) => {
+        recentActivity.push({
+            id: contrib.repository.id,
+            type: 'repo_create',
+            repo: contrib.repository.nameWithOwner,
+            date: contrib.repository.createdAt,
+            details: `Created new repository ${contrib.repository.nameWithOwner}`,
+        });
+    });
+  }
+  
+  const sortedActivity = recentActivity.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 20);
 
   return {
     id: apiUser.id,
@@ -44,14 +106,17 @@ function mapApiUserToUser(apiUser: any): User {
       pullRequests: apiUser.pullRequests?.totalCount || 0,
       issues: apiUser.issues?.totalCount || 0,
       repositories: apiUser.repositories?.totalCount || 0,
+      contributions: apiUser.contributionsCollection?.contributionCalendar.totalContributions || 0,
     },
     languages: sortedLangs,
-    recentActivity: [], // Activity feed is complex, returning empty for now
+    recentActivity: sortedActivity,
   }
 }
 
 export async function getTopUsers(count: number, country: string = 'global'): Promise<User[]> {
-  const locationFilter = country === 'global' ? 'followers:>1000' : `location:${country}`
+  const locationFilter = country === 'global' ? '' : `location:${country}`;
+  const queryString = `followers:>100 sort:followers-desc ${locationFilter}`.trim();
+
   const query = gql`
     query GetTopUsers($queryString: String!, $count: Int!) {
       search(query: $queryString, type: USER, first: $count) {
@@ -72,7 +137,7 @@ export async function getTopUsers(count: number, country: string = 'global'): Pr
   `
 
   const variables = {
-    queryString: `${locationFilter} sort:followers-desc`,
+    queryString,
     count,
   }
 
@@ -92,6 +157,7 @@ export async function getTopUsers(count: number, country: string = 'global'): Pr
         pullRequests: 0,
         issues: 0,
         repositories: 0,
+        contributions: 0,
       },
       languages: {},
       recentActivity: [],
@@ -104,8 +170,11 @@ export async function getTopUsers(count: number, country: string = 'global'): Pr
 }
 
 export async function getUserByUsername(username: string): Promise<User | undefined> {
+  const to = new Date();
+  const from = subDays(to, 90);
+  
   const query = gql`
-    query GetUserByUsername($username: String!) {
+    query GetUserByUsername($username: String!, $from: DateTime!, $to: DateTime!) {
       user(login: $username) {
         id
         login
@@ -139,11 +208,79 @@ export async function getUserByUsername(username: string): Promise<User | undefi
             }
           }
         }
+        contributionsCollection(from: $from, to: $to) {
+          contributionCalendar {
+            totalContributions
+          }
+          commitContributionsByRepository(maxRepositories: 10) {
+            repository {
+              nameWithOwner
+            }
+            contributions(first: 10, orderBy: {direction: DESC}) {
+              nodes {
+                occurredAt
+                commit {
+                  oid
+                  messageHeadline
+                }
+              }
+            }
+          }
+          pullRequestContributions(first: 10, orderBy: {direction: DESC}) {
+            nodes {
+              pullRequest {
+                id
+                createdAt
+                merged
+                mergedAt
+                title
+                repository {
+                  nameWithOwner
+                }
+              }
+            }
+          }
+          issueContributions(first: 10, orderBy: {direction: DESC}) {
+            nodes {
+              issue {
+                id
+                createdAt
+                title
+                repository {
+                  nameWithOwner
+                }
+              }
+            }
+          }
+          repositoryContributions(first: 5, orderBy: {direction: DESC}) {
+            nodes {
+              repository {
+                id
+                createdAt
+                nameWithOwner
+              }
+            }
+          }
+          pullRequestReviewContributions(first: 10, orderBy: {direction: DESC}) {
+            nodes {
+              pullRequestReview {
+                id
+                publishedAt
+                pullRequest {
+                  title
+                  repository {
+                    nameWithOwner
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   `
   try {
-    const data = await client.request(query, { username })
+    const data = await client.request(query, { username, from: from.toISOString(), to: to.toISOString() })
     if (!data.user) return undefined
     return mapApiUserToUser(data.user)
   } catch (error) {
@@ -194,4 +331,42 @@ export async function getLanguageStats(): Promise<LanguageStat[]> {
         console.error("Error fetching language stats from GitHub:", error);
         return [];
     }
+}
+
+export async function getTopRepositories(count: number): Promise<Repository[]> {
+  const query = gql`
+    query TopRepositories($count: Int!) {
+      search(query: "stars:>50000 sort:stars-desc", type: REPOSITORY, first: $count) {
+        nodes {
+          ... on Repository {
+            id
+            nameWithOwner
+            stargazerCount
+            forkCount
+            description
+            primaryLanguage {
+              name
+              color
+            }
+          }
+        }
+      }
+    }
+  `;
+  try {
+    const data = await client.request(query, { count });
+    return data.search.nodes.map((repo: any) => ({
+      id: repo.id,
+      name: repo.nameWithOwner,
+      owner: repo.nameWithOwner.split('/')[0],
+      stars: repo.stargazerCount,
+      forks: repo.forkCount,
+      description: repo.description,
+      language: repo.primaryLanguage?.name,
+      languageColor: repo.primaryLanguage?.color,
+    }));
+  } catch (error) {
+    console.error("Error fetching top repositories:", error);
+    return [];
+  }
 }

@@ -12,6 +12,7 @@ export type User = {
     pullRequests: number;
     issues: number;
     repositories: number;
+    contributions: number;
   };
   languages: Record<string, number>;
   recentActivity: Activity[];
@@ -28,4 +29,15 @@ export type Activity = {
 export type LanguageStat = {
   language: string;
   count: number;
+};
+
+export type Repository = {
+  id: string;
+  name: string;
+  owner: string;
+  stars: number;
+  forks: number;
+  description: string | null;
+  language: string | null;
+  languageColor: string | null;
 };

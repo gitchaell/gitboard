@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Code, GitFork, GitPullRequest, Star, UserPlus, Users } from 'lucide-react'
 
 export default function UserProfileLoading() {
   return (
@@ -16,12 +17,12 @@ export default function UserProfileLoading() {
       </div>
 
       {/* UserStats Skeleton */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[Users, UserPlus, Star, GitFork, GitPullRequest, Code].map((Icon, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-6 w-6 rounded" />
+              <Icon className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <Skeleton className="h-8 w-16" />

@@ -1,6 +1,6 @@
 import type { User } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Star, GitPullRequest, CircleDot, UserPlus, GitFork } from 'lucide-react';
+import { Users, Star, GitPullRequest, CircleDot, UserPlus, GitFork, Code } from 'lucide-react';
 
 type UserStatsProps = {
   stats: User['stats'];
@@ -34,9 +34,9 @@ export function UserStats({ stats }: UserStatsProps) {
       icon: <GitPullRequest className="h-6 w-6 text-muted-foreground" />,
     },
     {
-      title: 'Issues',
-      value: stats.issues,
-      icon: <CircleDot className="h-6 w-6 text-muted-foreground" />,
+      title: 'Contributions',
+      value: stats.contributions,
+      icon: <Code className="h-6 w-6 text-muted-foreground" />,
     },
   ];
 
