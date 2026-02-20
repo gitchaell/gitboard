@@ -51,7 +51,7 @@ function mapApiUserToUser(apiUser: any): User {
 }
 
 export async function getTopUsers(count: number, country: string = 'global'): Promise<User[]> {
-  const locationFilter = country === 'global' ? '' : ` location:${country}`
+  const locationFilter = country === 'global' ? 'followers:>1000' : `location:${country}`
   const query = gql`
     query GetTopUsers($queryString: String!, $count: Int!) {
       search(query: $queryString, type: USER, first: $count) {
@@ -72,7 +72,7 @@ export async function getTopUsers(count: number, country: string = 'global'): Pr
   `
 
   const variables = {
-    queryString: `followers:>1000 sort:followers-desc${locationFilter}`,
+    queryString: `${locationFilter} sort:followers-desc`,
     count,
   }
 

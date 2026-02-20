@@ -1,6 +1,6 @@
 import type { User } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Star, GitPullRequest, CircleDot } from 'lucide-react';
+import { Users, Star, GitPullRequest, CircleDot, UserPlus, GitFork } from 'lucide-react';
 
 type UserStatsProps = {
   stats: User['stats'];
@@ -14,9 +14,19 @@ export function UserStats({ stats }: UserStatsProps) {
       icon: <Users className="h-6 w-6 text-muted-foreground" />,
     },
     {
+      title: 'Following',
+      value: stats.following,
+      icon: <UserPlus className="h-6 w-6 text-muted-foreground" />,
+    },
+    {
       title: 'Total Stars',
       value: stats.stars,
       icon: <Star className="h-6 w-6 text-muted-foreground" />,
+    },
+    {
+      title: 'Repositories',
+      value: stats.repositories,
+      icon: <GitFork className="h-6 w-6 text-muted-foreground" />,
     },
     {
       title: 'Pull Requests',
@@ -31,7 +41,7 @@ export function UserStats({ stats }: UserStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {statItems.map((item) => (
         <Card key={item.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
