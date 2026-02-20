@@ -18,17 +18,33 @@ export default async function Home({
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   const country = typeof searchParams?.country === 'string' ? searchParams.country : 'global';
-  const topUsers = await getTopUsers(100, country);
+  const city = typeof searchParams?.city === 'string' ? searchParams.city : '';
+
+  let location = country === 'global' ? '' : country;
+  if (city) {
+      location = country === 'global' ? city : `${city}, ${country}`;
+  }
+
+  const topUsers = await getTopUsers(100, location || 'global');
   const languageStats = await getLanguageStats();
   const topRepos = await getTopRepositories(10);
+
+  let title = 'Global Dashboard';
+  let subtitle = 'Top GitHub users and language trends.';
+
+  if (location) {
+    title = `Top Contributors in ${location}`;
+    subtitle = `Showing top users for the specified location.`;
+  }
+
 
   return (
     <div className="space-y-8">
       <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Global Dashboard</h1>
+          <h1 className="text-3xl font-bold font-headline">{title}</h1>
           <p className="text-muted-foreground">
-            Top GitHub users and language trends.
+            {subtitle}
           </p>
         </div>
         <CountrySelector />

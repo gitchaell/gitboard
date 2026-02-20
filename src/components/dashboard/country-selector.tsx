@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { Check, ChevronsUpDown, Search } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { Input } from '../ui/input'
 
 const COUNTRIES = [
     { value: 'global', label: 'Global' },
@@ -197,63 +198,95 @@ const COUNTRIES = [
 export function CountrySelector() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const currentCountry = searchParams.get('country') || 'global'
 
+  const currentCountry = searchParams.get('country') || 'global'
+  const currentCity = searchParams.get('city') || ''
+  
   const [open, setOpen] = React.useState(false)
+  const [city, setCity] = React.useState(currentCity)
+
+  const navigate = (country: string, city: string) => {
+      const params = new URLSearchParams();
+      if (country && country !== 'global') {
+          params.set('country', country);
+      }
+      if (city) {
+          params.set('city', city);
+      }
+      router.push(`?${params.toString()}`);
+  }
 
   const handleCountryChange = (countryValue: string) => {
-    const params = new URLSearchParams(window.location.search)
-    if (countryValue === 'global') {
-      params.delete('country')
-    } else {
-      params.set('country', countryValue)
-    }
-    router.push(`?${params.toString()}`)
-    setOpen(false)
-  }
+    setOpen(false);
+    navigate(countryValue, city);
+  };
   
-  const currentCountryLabel = COUNTRIES.find(c => c.value === currentCountry)?.label || 'Select country...';
+  const handleSearch = () => {
+    navigate(currentCountry, city);
+  }
+
+  const handleCityKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSearch();
+    }
+  }
+
+  const currentCountryLabel = COUNTRIES.find(c => c.value === currentCountry)?.label || 'Global';
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] justify-between bg-card/75 backdrop-blur-sm"
-        >
-          <span className="truncate">{currentCountryLabel}</span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Search country..." />
-          <CommandList>
-            <CommandEmpty>No country found.</CommandEmpty>
-            <CommandGroup>
-              {COUNTRIES.map((country) => (
-                <CommandItem
-                  key={country.value}
-                  value={country.label}
-                  onSelect={() => {
-                    handleCountryChange(country.value)
-                  }}
+    <div className="flex flex-col sm:flex-row items-center gap-2">
+        <Input
+            type="text"
+            placeholder="Optional: City..."
+            className="bg-card/75 backdrop-blur-sm w-full sm:w-[150px]"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            onKeyDown={handleCityKeydown}
+        />
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full sm:w-[200px] justify-between bg-card/75 backdrop-blur-sm"
                 >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      currentCountry === country.value ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                  {country.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                <span className="truncate">{currentCountryLabel}</span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+                <Command>
+                <CommandInput placeholder="Search country..." />
+                <CommandList>
+                    <CommandEmpty>No country found.</CommandEmpty>
+                    <CommandGroup>
+                    {COUNTRIES.map((country) => (
+                        <CommandItem
+                        key={country.value}
+                        value={country.label}
+                        onSelect={() => {
+                            handleCountryChange(country.value)
+                        }}
+                        >
+                        <Check
+                            className={cn(
+                            'mr-2 h-4 w-4',
+                            currentCountry === country.value ? 'opacity-100' : 'opacity-0'
+                            )}
+                        />
+                        {country.label}
+                        </CommandItem>
+                    ))}
+                    </CommandGroup>
+                </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+        <Button onClick={handleSearch}>
+            <Search className="h-4 w-4 mr-2" /> Search
+        </Button>
+    </div>
   )
 }

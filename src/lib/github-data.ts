@@ -100,9 +100,9 @@ function mapApiUserToUser(apiUser: any): User {
   }
 }
 
-export async function getTopUsers(count: number, country: string = 'global'): Promise<User[]> {
-  const locationFilter = country === 'global' ? '' : ` location:${country}`;
-  const followerFilter = country === 'global' ? 'followers:>1000' : 'followers:>10';
+export async function getTopUsers(count: number, location: string = 'global'): Promise<User[]> {
+  const locationFilter = location === 'global' ? '' : ` location:"${location}"`;
+  const followerFilter = location === 'global' || location.includes(',') ? 'followers:>10' : 'followers:>100';
   const queryString = `${followerFilter} sort:followers-desc${locationFilter}`.trim();
 
   const query = gql`
