@@ -14,7 +14,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Users, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserStarsCell } from './user-stars-cell';
 
 type UserRankingProps = {
   users: User[];
@@ -53,6 +54,11 @@ export function UserRanking({ users }: UserRankingProps) {
                   <Users className="h-4 w-4" /> Followers
                 </div>
               </TableHead>
+              <TableHead className="text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <Star className="h-4 w-4" /> Total Stars
+                </div>
+              </TableHead>
               <TableHead className="hidden md:table-cell text-center">Country</TableHead>
               <TableHead className="text-right"></TableHead>
             </TableRow>
@@ -77,6 +83,9 @@ export function UserRanking({ users }: UserRankingProps) {
                 </TableCell>
                 <TableCell className="text-right font-code font-medium">
                   {user.stats.followers.toLocaleString()}
+                </TableCell>
+                <TableCell className="text-right font-code font-medium">
+                  <UserStarsCell username={user.username} />
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-center">
                   { user.country && <Badge variant="secondary">{user.country}</Badge> }

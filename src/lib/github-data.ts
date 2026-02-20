@@ -1,4 +1,3 @@
-
 import { GraphQLClient, gql } from 'graphql-request'
 import type { User, LanguageStat, Activity } from './types'
 
@@ -79,7 +78,24 @@ export async function getTopUsers(count: number, country: string = 'global'): Pr
 
   try {
     const data = await client.request(query, variables)
-    const users = data.search.nodes.filter((user: any) => user && user.login).map(mapApiUserToUser)
+    const users: User[] = data.search.nodes.filter((user: any) => user && user.login).map((apiUser: any) => ({
+      id: apiUser.id,
+      username: apiUser.login,
+      name: apiUser.name,
+      avatarUrl: apiUser.avatarUrl,
+      country: apiUser.location,
+      bio: null,
+      stats: {
+        followers: apiUser.followers?.totalCount || 0,
+        stars: 0, // Fetched on the client
+        following: 0,
+        pullRequests: 0,
+        issues: 0,
+        repositories: 0,
+      },
+      languages: {},
+      recentActivity: [],
+    }))
     return users
   } catch (error) {
     console.error("Error fetching top users from GitHub:", error)
