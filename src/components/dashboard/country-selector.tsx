@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { Check, ChevronsUpDown, Search } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Country, City } from 'country-state-city'
+import type { ICountry, ICity } from 'country-state-city'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -19,240 +21,81 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Input } from '../ui/input'
 
-const COUNTRIES = [
-    { value: 'global', label: 'Global' },
-    { value: 'Afghanistan', label: 'Afghanistan' },
-    { value: 'Albania', label: 'Albania' },
-    { value: 'Algeria', label: 'Algeria' },
-    { value: 'Andorra', label: 'Andorra' },
-    { value: 'Angola', label: 'Angola' },
-    { value: 'Argentina', label: 'Argentina' },
-    { value: 'Armenia', label: 'Armenia' },
-    { value: 'Australia', label: 'Australia' },
-    { value: 'Austria', label: 'Austria' },
-    { value: 'Azerbaijan', label: 'Azerbaijan' },
-    { value: 'Bahamas', label: 'Bahamas' },
-    { value: 'Bahrain', label: 'Bahrain' },
-    { value: 'Bangladesh', label: 'Bangladesh' },
-    { value: 'Barbados', label: 'Barbados' },
-    { value: 'Belarus', label: 'Belarus' },
-    { value: 'Belgium', label: 'Belgium' },
-    { value: 'Belize', label: 'Belize' },
-    { value: 'Benin', label: 'Benin' },
-    { value: 'Bhutan', label: 'Bhutan' },
-    { value: 'Bolivia', label: 'Bolivia' },
-    { value: 'Bosnia and Herzegovina', label: 'Bosnia and Herzegovina' },
-    { value: 'Botswana', label: 'Botswana' },
-    { value: 'Brazil', label: 'Brazil' },
-    { value: 'Brunei', label: 'Brunei' },
-    { value: 'Bulgaria', label: 'Bulgaria' },
-    { value: 'Burkina Faso', label: 'Burkina Faso' },
-    { value: 'Burundi', label: 'Burundi' },
-    { value: 'Cambodia', label: 'Cambodia' },
-    { value: 'Cameroon', label: 'Cameroon' },
-    { value: 'Canada', label: 'Canada' },
-    { value: 'Central African Republic', label: 'Central African Republic' },
-    { value: 'Chad', label: 'Chad' },
-    { value: 'Chile', label: 'Chile' },
-    { value: 'China', label: 'China' },
-    { value: 'Colombia', label: 'Colombia' },
-    { value: 'Comoros', label: 'Comoros' },
-    { value: 'Congo', label: 'Congo' },
-    { value: 'Costa Rica', label: 'Costa Rica' },
-    { value: 'Croatia', label: 'Croatia' },
-    { value: 'Cuba', label: 'Cuba' },
-    { value: 'Cyprus', label: 'Cyprus' },
-    { value: 'Czech Republic', label: 'Czech Republic' },
-    { value: 'Denmark', label: 'Denmark' },
-    { value: 'Djibouti', label: 'Djibouti' },
-    { value: 'Dominica', label: 'Dominica' },
-    { value: 'Dominican Republic', label: 'Dominican Republic' },
-    { value: 'Ecuador', label: 'Ecuador' },
-    { value: 'Egypt', label: 'Egypt' },
-    { value: 'El Salvador', label: 'El Salvador' },
-    { value: 'Equatorial Guinea', label: 'Equatorial Guinea' },
-    { value: 'Estonia', label: 'Estonia' },
-    { value: 'Ethiopia', label: 'Ethiopia' },
-    { value: 'Fiji', label: 'Fiji' },
-    { value: 'Finland', label: 'Finland' },
-    { value: 'France', label: 'France' },
-    { value: 'Gabon', label: 'Gabon' },
-    { value: 'Gambia', label: 'Gambia' },
-    { value: 'Georgia', label: 'Georgia' },
-    { value: 'Germany', label: 'Germany' },
-    { value: 'Ghana', label: 'Ghana' },
-    { value: 'Greece', label: 'Greece' },
-    { value: 'Grenada', label: 'Grenada' },
-    { value: 'Guatemala', label: 'Guatemala' },
-    { value: 'Guinea', label: 'Guinea' },
-    { value: 'Guyana', label: 'Guyana' },
-    { value: 'Haiti', label: 'Haiti' },
-    { value: 'Honduras', label: 'Honduras' },
-    { value: 'Hungary', label: 'Hungary' },
-    { value: 'Iceland', label: 'Iceland' },
-    { value: 'India', label: 'India' },
-    { value: 'Indonesia', label: 'Indonesia' },
-    { value: 'Iran', label: 'Iran' },
-    { value: 'Iraq', label: 'Iraq' },
-    { value: 'Ireland', label: 'Ireland' },
-    { value: 'Israel', label: 'Israel' },
-    { value: 'Italy', label: 'Italy' },
-    { value: 'Jamaica', label: 'Jamaica' },
-    { value: 'Japan', label: 'Japan' },
-    { value: 'Jordan', label: 'Jordan' },
-    { value: 'Kazakhstan', label: 'Kazakhstan' },
-    { value: 'Kenya', label: 'Kenya' },
-    { value: 'Kuwait', label: 'Kuwait' },
-    { value: 'Kyrgyzstan', label: 'Kyrgyzstan' },
-    { value: 'Laos', label: 'Laos' },
-    { value: 'Latvia', label: 'Latvia' },
-    { value: 'Lebanon', label: 'Lebanon' },
-    { value: 'Lesotho', label: 'Lesotho' },
-    { value: 'Liberia', label: 'Liberia' },
-    { value: 'Libya', label: 'Libya' },
-    { value: 'Liechtenstein', label: 'Liechtenstein' },
-    { value: 'Lithuania', label: 'Lithuania' },
-    { value: 'Luxembourg', label: 'Luxembourg' },
-    { value: 'Macedonia', label: 'Macedonia' },
-    { value: 'Madagascar', label: 'Madagascar' },
-    { value: 'Malawi', label: 'Malawi' },
-    { value: 'Malaysia', label: 'Malaysia' },
-    { value: 'Maldives', label: 'Maldives' },
-    { value: 'Mali', label: 'Mali' },
-    { value: 'Malta', label: 'Malta' },
-    { value: 'Mauritania', label: 'Mauritania' },
-    { value: 'Mauritius', label: 'Mauritius' },
-    { value: 'Mexico', label: 'Mexico' },
-    { value: 'Moldova', label: 'Moldova' },
-    { value: 'Monaco', label: 'Monaco' },
-    { value: 'Mongolia', label: 'Mongolia' },
-    { value: 'Montenegro', label: 'Montenegro' },
-    { value: 'Morocco', label: 'Morocco' },
-    { value: 'Mozambique', label: 'Mozambique' },
-    { value: 'Myanmar', label: 'Myanmar' },
-    { value: 'Namibia', label: 'Namibia' },
-    { value: 'Nepal', label: 'Nepal' },
-    { value: 'Netherlands', label: 'Netherlands' },
-    { value: 'New Zealand', label: 'New Zealand' },
-    { value: 'Nicaragua', label: 'Nicaragua' },
-    { value: 'Niger', label: 'Niger' },
-    { value: 'Nigeria', label: 'Nigeria' },
-    { value: 'North Korea', label: 'North Korea' },
-    { value: 'Norway', label: 'Norway' },
-    { value: 'Oman', label: 'Oman' },
-    { value: 'Pakistan', label: 'Pakistan' },
-    { value: 'Panama', label: 'Panama' },
-    { value: 'Paraguay', label: 'Paraguay' },
-    { value: 'Peru', label: 'Peru' },
-    { value: 'Philippines', label: 'Philippines' },
-    { value: 'Poland', label: 'Poland' },
-    { value: 'Portugal', label: 'Portugal' },
-    { value: 'Qatar', label: 'Qatar' },
-    { value: 'Romania', label: 'Romania' },
-    { value: 'Russia', label: 'Russia' },
-    { value: 'Rwanda', label: 'Rwanda' },
-    { value: 'Saudi Arabia', label: 'Saudi Arabia' },
-    { value: 'Senegal', label: 'Senegal' },
-    { value: 'Serbia', label: 'Serbia' },
-    { value: 'Seychelles', label: 'Seychelles' },
-    { value: 'Sierra Leone', label: 'Sierra Leone' },
-    { value: 'Singapore', label: 'Singapore' },
-    { value: 'Slovakia', label: 'Slovakia' },
-    { value: 'Slovenia', label: 'Slovenia' },
-    { value: 'Somalia', label: 'Somalia' },
-    { value: 'South Africa', label: 'South Africa' },
-    { value: 'South Korea', label: 'South Korea' },
-    { value: 'South Sudan', label: 'South Sudan' },
-    { value: 'Spain', label: 'Spain' },
-    { value: 'Sri Lanka', label: 'Sri Lanka' },
-    { value: 'Sudan', label: 'Sudan' },
-    { value: 'Sweden', label: 'Sweden' },
-    { value: 'Switzerland', label: 'Switzerland' },
-    { value: 'Syria', label: 'Syria' },
-    { value: 'Taiwan', label: 'Taiwan' },
-    { value: 'Tajikistan', label: 'Tajikistan' },
-    { value: 'Tanzania', label: 'Tanzania' },
-    { value: 'Thailand', label: 'Thailand' },
-    { value: 'Togo', label: 'Togo' },
-    { value: 'Trinidad and Tobago', label: 'Trinidad and Tobago' },
-    { value: 'Tunisia', label: 'Tunisia' },
-    { value: 'Turkey', label: 'Turkey' },
-    { value: 'Turkmenistan', label: 'Turkmenistan' },
-    { value: 'Uganda', label: 'Uganda' },
-    { value: 'Ukraine', label: 'Ukraine' },
-    { value: 'United Arab Emirates', label: 'United Arab Emirates' },
-    { value: 'United Kingdom', label: 'United Kingdom' },
-    { value: 'United States', label: 'United States' },
-    { value: 'Uruguay', label: 'Uruguay' },
-    { value: 'Uzbekistan', label: 'Uzbekistan' },
-    { value: 'Venezuela', label: 'Venezuela' },
-    { value: 'Vietnam', label: 'Vietnam' },
-    { value: 'Yemen', label: 'Yemen' },
-    { value: 'Zambia', label: 'Zambia' },
-    { value: 'Zimbabwe', label: 'Zimbabwe' },
-];
+type CountryOption = Omit<ICountry, 'flag' | 'latitude' | 'longitude' | 'timezones' | 'phonecode' | 'currency'> | {
+  name: 'Global';
+  isoCode: 'global';
+};
 
 
 export function CountrySelector() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const currentCountry = searchParams.get('country') || 'global'
-  const currentCity = searchParams.get('city') || ''
+  const countries = React.useMemo<CountryOption[]>(() => [{ name: 'Global', isoCode: 'global' }, ...Country.getAllCountries()], []);
   
-  const [open, setOpen] = React.useState(false)
-  const [city, setCity] = React.useState(currentCity)
+  const [countryOpen, setCountryOpen] = React.useState(false)
+  const [cityOpen, setCityOpen] = React.useState(false)
 
-  const navigate = (country: string, city: string) => {
+  const [cities, setCities] = React.useState<ICity[]>([]);
+
+  // Initialize state from URL params
+  const initialCountryName = searchParams.get('country') || 'Global';
+  const initialCityName = searchParams.get('city') || '';
+
+  const [selectedCountry, setSelectedCountry] = React.useState<CountryOption | undefined>(
+    countries.find(c => c.name === initialCountryName)
+  );
+  const [selectedCity, setSelectedCity] = React.useState<ICity | { name: string } | null>(
+    initialCityName ? { name: initialCityName } : null
+  );
+  
+  React.useEffect(() => {
+    if (selectedCountry && selectedCountry.isoCode !== 'global') {
+      const countryCities = City.getCitiesOfCountry(selectedCountry.isoCode);
+      setCities(countryCities || []);
+    } else {
+      setCities([]);
+    }
+  }, [selectedCountry]);
+  
+  const handleSearch = () => {
       const params = new URLSearchParams();
-      if (country && country !== 'global') {
-          params.set('country', country);
+      if (selectedCountry && selectedCountry.name !== 'Global') {
+          params.set('country', selectedCountry.name);
       }
-      if (city) {
-          params.set('city', city);
+      if (selectedCity?.name) {
+          params.set('city', selectedCity.name);
       }
       router.push(`?${params.toString()}`);
   }
 
-  const handleCountryChange = (countryValue: string) => {
-    setOpen(false);
-    navigate(countryValue, city);
-  };
-  
-  const handleSearch = () => {
-    navigate(currentCountry, city);
-  }
-
-  const handleCityKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        handleSearch();
+  const handleCountrySelect = (country: CountryOption) => {
+    setSelectedCountry(country);
+    setSelectedCity(null); // Reset city
+    setCountryOpen(false);
+    // If global is selected, we can navigate immediately
+    if (country.isoCode === 'global') {
+        router.push('/');
     }
   }
 
-  const currentCountryLabel = COUNTRIES.find(c => c.value === currentCountry)?.label || 'Global';
+  const handleCitySelect = (city: ICity) => {
+    setSelectedCity(city);
+    setCityOpen(false);
+  }
 
   return (
     <div className="flex flex-col sm:flex-row items-center gap-2">
-        <Input
-            type="text"
-            placeholder="Optional: City..."
-            className="bg-card/75 backdrop-blur-sm w-full sm:w-[150px]"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            onKeyDown={handleCityKeydown}
-        />
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={countryOpen} onOpenChange={setCountryOpen}>
             <PopoverTrigger asChild>
                 <Button
                 variant="outline"
                 role="combobox"
-                aria-expanded={open}
+                aria-expanded={countryOpen}
                 className="w-full sm:w-[200px] justify-between bg-card/75 backdrop-blur-sm"
                 >
-                <span className="truncate">{currentCountryLabel}</span>
+                <span className="truncate">{selectedCountry?.name || 'Select country...'}</span>
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
@@ -262,21 +105,19 @@ export function CountrySelector() {
                 <CommandList>
                     <CommandEmpty>No country found.</CommandEmpty>
                     <CommandGroup>
-                    {COUNTRIES.map((country) => (
+                    {countries.map((country) => (
                         <CommandItem
-                        key={country.value}
-                        value={country.label}
-                        onSelect={() => {
-                            handleCountryChange(country.value)
-                        }}
+                        key={country.isoCode}
+                        value={country.name}
+                        onSelect={() => handleCountrySelect(country as CountryOption)}
                         >
                         <Check
                             className={cn(
                             'mr-2 h-4 w-4',
-                            currentCountry === country.value ? 'opacity-100' : 'opacity-0'
+                            selectedCountry?.isoCode === country.isoCode ? 'opacity-100' : 'opacity-0'
                             )}
                         />
-                        {country.label}
+                        {country.name}
                         </CommandItem>
                     ))}
                     </CommandGroup>
@@ -284,6 +125,47 @@ export function CountrySelector() {
                 </Command>
             </PopoverContent>
         </Popover>
+        
+        <Popover open={cityOpen} onOpenChange={setCityOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={cityOpen}
+                className="w-full sm:w-[200px] justify-between bg-card/75 backdrop-blur-sm"
+                disabled={!selectedCountry || selectedCountry.isoCode === 'global' || cities.length === 0}
+                >
+                <span className="truncate">{selectedCity?.name || 'Select city...'}</span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+                <Command>
+                <CommandInput placeholder="Search city..." />
+                <CommandList>
+                    <CommandEmpty>No city found.</CommandEmpty>
+                    <CommandGroup>
+                    {cities.map((city) => (
+                        <CommandItem
+                        key={`${city.name}-${city.countryCode}-${city.stateCode}`}
+                        value={city.name}
+                        onSelect={() => handleCitySelect(city)}
+                        >
+                        <Check
+                            className={cn(
+                            'mr-2 h-4 w-4',
+                            selectedCity?.name === city.name ? 'opacity-100' : 'opacity-0'
+                            )}
+                        />
+                        {city.name}
+                        </CommandItem>
+                    ))}
+                    </CommandGroup>
+                </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+
         <Button onClick={handleSearch}>
             <Search className="h-4 w-4 mr-2" /> Search
         </Button>
