@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Code, GitFork, GitPullRequest, Star, UserPlus, Users } from 'lucide-react'
+import { Code, GitFork, GitPullRequest, Star, UserPlus, Users, Globe, MapPin } from 'lucide-react'
 
 export default function UserProfileLoading() {
   return (
@@ -14,6 +14,28 @@ export default function UserProfileLoading() {
           <Skeleton className="h-5 w-72 mt-2" />
           <Skeleton className="h-5 w-24 mt-2" />
         </div>
+      </div>
+
+      {/* UserRankStats Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-5 w-24" />
+              <Globe className="h-6 w-6 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16" />
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-5 w-32" />
+              <MapPin className="h-6 w-6 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16" />
+            </CardContent>
+        </Card>
       </div>
 
       {/* UserStats Skeleton */}
