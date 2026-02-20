@@ -20,7 +20,7 @@ export type User = {
 
 export type Activity = {
   id: string;
-  type: 'commit' | 'pr_open' | 'pr_merged' | 'issue_open' | 'review' | 'repo_create';
+  type: 'pr_open' | 'pr_merged' | 'issue_open' | 'review' | 'repo_create';
   repo: string;
   date: string;
   details: string;

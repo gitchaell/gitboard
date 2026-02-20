@@ -32,19 +32,6 @@ function mapApiUserToUser(apiUser: any): User {
 
   const recentActivity: Activity[] = [];
   if (apiUser.contributionsCollection) {
-    // Commits
-    apiUser.contributionsCollection.commitContributionsByRepository.forEach((repo: any) => {
-      repo.contributions.nodes.forEach((contrib: any) => {
-        recentActivity.push({
-          id: contrib.commit.oid,
-          type: 'commit',
-          repo: repo.repository.nameWithOwner,
-          date: contrib.occurredAt,
-          details: contrib.commit.messageHeadline,
-        });
-      });
-    });
-
     // PRs
     apiUser.contributionsCollection.pullRequestContributions.nodes.forEach((contrib: any) => {
         recentActivity.push({
@@ -114,8 +101,9 @@ function mapApiUserToUser(apiUser: any): User {
 }
 
 export async function getTopUsers(count: number, country: string = 'global'): Promise<User[]> {
-  const locationFilter = country === 'global' ? '' : `location:${country}`;
-  const queryString = `followers:>100 sort:followers-desc ${locationFilter}`.trim();
+  const locationFilter = country === 'global' ? '' : ` location:${country}`;
+  const followerFilter = country === 'global' ? 'followers:>1000' : 'followers:>10';
+  const queryString = `${followerFilter} sort:followers-desc${locationFilter}`.trim();
 
   const query = gql`
     query GetTopUsers($queryString: String!, $count: Int!) {
@@ -211,20 +199,6 @@ export async function getUserByUsername(username: string): Promise<User | undefi
         contributionsCollection(from: $from, to: $to) {
           contributionCalendar {
             totalContributions
-          }
-          commitContributionsByRepository(maxRepositories: 10) {
-            repository {
-              nameWithOwner
-            }
-            contributions(first: 10, orderBy: {direction: DESC}) {
-              nodes {
-                occurredAt
-                commit {
-                  oid
-                  messageHeadline
-                }
-              }
-            }
           }
           pullRequestContributions(first: 10, orderBy: {direction: DESC}) {
             nodes {

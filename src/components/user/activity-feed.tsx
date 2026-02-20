@@ -1,6 +1,5 @@
 import type { Activity } from '@/lib/types';
 import {
-  GitCommit,
   GitPullRequest,
   AlertCircle,
   GitMerge,
@@ -14,7 +13,6 @@ type ActivityFeedProps = {
 };
 
 const activityIcons: Record<Activity['type'], React.ReactNode> = {
-  commit: <GitCommit className="h-5 w-5" />,
   pr_open: <GitPullRequest className="h-5 w-5" />,
   issue_open: <AlertCircle className="h-5 w-5" />,
   pr_merged: <GitMerge className="h-5 w-5" />,
@@ -23,7 +21,6 @@ const activityIcons: Record<Activity['type'], React.ReactNode> = {
 };
 
 const activityText: Record<Activity['type'], string> = {
-    commit: 'New commit in',
     pr_open: 'Opened pull request in',
     issue_open: 'Opened issue in',
     pr_merged: 'Merged pull request in',
